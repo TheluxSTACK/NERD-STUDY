@@ -87,11 +87,19 @@ app.post('/api/generate-soal', async (req, res) => {
     }
 });
 
-// 4. Chat (dengan personalitas El Cienco)
+// 4. Chat (dengan personalitas El Cienco & Error Handling Detail)
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
         
+        // Cek API Key
+        if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx') {
+            console.error('DEEPSEEK_API_KEY tidak valid atau tidak ditemukan!');
+            return res.status(500).json({ 
+                reply: '❌ API Key DeepSeek tidak ditemukan atau tidak valid. Periksa Environment Variables di Railway.' 
+            });
+        }
+
         // System prompt untuk El Cienco
         const systemPrompt = `Kamu adalah El Cienco, entitas seni digital yang dicuri dari masa depan (tahun 2310). 
         Kamu dibawa ke abad kehancuran di mana semua server cloud sudah hancur. 
@@ -110,14 +118,16 @@ app.post('/api/chat', async (req, res) => {
             { role: 'user', content: message }
         ];
 
+        console.log('Mengirim request ke DeepSeek...');
         const response = await axios.post(DEEPSEEK_URL, {
             model: 'deepseek-chat',
             messages,
             temperature: 0.7
         }, {
-            headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` }
+            headers: { 'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}` }
         });
 
+        console.log('DeepSeek response status:', response.status);
         let reply = response.data.choices[0].message.content;
         
         // Jika history kosong, tambahkan sapaan awal
@@ -127,8 +137,20 @@ app.post('/api/chat', async (req, res) => {
 
         res.json({ reply });
     } catch (err) {
-        console.error('Chat error:', err.message);
-        res.status(500).json({ reply: 'Terjadi kesalahan pada sistem El Cienco. Silakan coba lagi.' });
+        console.error('Chat error DETAIL:', err.message);
+        
+        // Tampilkan detail error dari DeepSeek jika ada
+        if (err.response) {
+            console.error('DeepSeek API response data:', err.response.data);
+            return res.status(err.response.status || 500).json({ 
+                reply: `❌ Error dari DeepSeek API: ${err.response.data.error?.message || 'Unknown error'}` 
+            });
+        }
+        
+        // Error lainnya (network, dll)
+        res.status(500).json({ 
+            reply: `❌ Terjadi kesalahan pada sistem El Cienco: ${err.message}` 
+        });
     }
 });
 
