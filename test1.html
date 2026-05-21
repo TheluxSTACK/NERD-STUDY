@@ -894,7 +894,7 @@
             if (!file) return alert('Pilih file PDF dulu!');
             const formData = new FormData();
             formData.append('file', file);
-            const res = await fetch('/api/extract-pdf', { method: 'POST', body: formData });
+            const res = await fetch('https://sweet-cat-production-11ad.up.railway.app/api/extract-pdf', { method: 'POST', body: formData });
             const data = await res.json();
             pdfText = data.text;
             alert('PDF berhasil diekstrak! Teks siap digunakan.');
@@ -904,7 +904,7 @@
         async function generateFlashcard() {
             const prompt = document.getElementById('flashcardPrompt').value;
             if (!prompt && !pdfText) return alert('Masukkan prompt atau upload PDF dulu!');
-            const res = await fetch('/api/generate-flashcard', {
+            const res = await fetch('https://sweet-cat-production-11ad.up.railway.app/api/generate-flashcard', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt, pdfText })
@@ -918,7 +918,7 @@
             const type = document.getElementById('soalType').value;
             const prompt = document.getElementById('soalPrompt').value;
             if (!prompt && !pdfText) return alert('Masukkan prompt atau upload PDF dulu!');
-            const res = await fetch('/api/generate-soal', {
+            const res = await fetch('https://sweet-cat-production-11ad.up.railway.app/api/generate-soal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type, prompt, pdfText })
@@ -959,7 +959,7 @@
             input.value = '';
 
             // Kirim ke backend
-            const res = await fetch('/api/chat', {
+            const res = await fetch('https://sweet-cat-production-11ad.up.railway.app/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: msg, history: chatHistory })
