@@ -10,7 +10,7 @@ const app = express();
 const allowedOrigins = [
     'https://nerd-study.netlify.app',
     'https://nerd-study.vercel.app',
-    'http://localhost:3000'
+    'http://localhost:8080'
 ];
 
 app.use(cors({
