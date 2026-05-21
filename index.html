@@ -984,7 +984,9 @@
             aiDiv.className = 'chat-message ai';
             aiDiv.textContent = data.reply;
             container.appendChild(aiDiv);
-            chatHistory.push({ role: 'ai', content: data.reply });
+            
+            // PERBAIKAN: Ganti role 'ai' menjadi 'assistant'
+            chatHistory.push({ role: 'assistant', content: data.reply });
             container.scrollTop = container.scrollHeight;
 
             // Simpan ke localStorage
