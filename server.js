@@ -159,5 +159,5 @@ app.get('/', (req, res) => {
     res.send('El Cienco System — Backend Running');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`El Cienco server running on port ${PORT}`));
