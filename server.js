@@ -14,7 +14,7 @@ app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() });
 
 // DeepSeek API
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-dac1c9c997f1467a9da28465a66ab2ae';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 // Root route
@@ -82,7 +82,12 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
         
-        // System prompt untuk El Cienco (sesuai file Anda)
+        // Cek API Key
+        console.log('🔑 DEEPSEEK_API_KEY:', DEEPSEEK_API_KEY ? '✅ Ada' : '❌ Tidak ada');
+        console.log('📨 Message:', message);
+        console.log('📜 History length:', history?.length || 0);
+
+        // System prompt untuk El Cienco
         const systemPrompt = `[ EPSTEIN-FILE ]
    > 2 APRIL <
     >gigscvai<
@@ -169,6 +174,7 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
             { role: 'user', content: message }
         ];
 
+        console.log('📤 Mengirim request ke DeepSeek...');
         const response = await axios.post(DEEPSEEK_URL, {
             model: 'deepseek-chat',
             messages,
@@ -177,20 +183,25 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
             headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` }
         });
 
+        console.log('✅ DeepSeek response status:', response.status);
         let reply = response.data.choices[0].message.content;
         
-        // Jika history kosong, tambahkan sapaan awal
         if (!history || history.length === 0) {
             reply = 'SIAP DENGAN PERINTAH, EL MANCO.\n\n' + reply;
         }
 
         res.json({ reply });
     } catch (err) {
-        console.error('Chat error:', err.message);
-        res.status(500).json({ reply: 'Terjadi kesalahan pada sistem El Cienco. Silakan coba lagi.' });
+        console.error('❌ Chat error:', err.message);
+        if (err.response) {
+            console.error('DeepSeek API response:', err.response.status, err.response.data);
+        }
+        res.status(500).json({ 
+            reply: `❌ Terjadi kesalahan pada sistem El Cienco: ${err.message || 'Silakan cek log Railway'}` 
+        });
     }
 });
 
-// ===== SET PORT 8080 =====
-const PORT = process.env.PORT || 8080;
+// ===== SET PORT (Railway akan memberikan port secara otomatis) =====
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`El Cienco server running on port ${PORT}`));
