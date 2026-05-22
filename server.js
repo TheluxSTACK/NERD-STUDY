@@ -21,13 +21,13 @@ app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// OpenRouter API (gratis)
+// OpenRouter API (DeepSeek V4 Flash gratis)
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Root route
 app.get('/', (req, res) => {
-    res.send('El Cienco System — Backend Running');
+    res.send('El Cienco System — Backend Running (DeepSeek V4 Flash)');
 });
 
 // 1. Extract PDF
@@ -51,7 +51,7 @@ app.post('/api/generate-flashcard', async (req, res) => {
             { role: 'user', content: `Buat flashcard dari teks berikut:\n${context}` }
         ];
         const response = await axios.post(OPENROUTER_URL, {
-            model: 'google/gemma-2-9b-it:free',
+            model: 'deepseek/deepseek-v4-flash:free',
             messages,
             temperature: 0.3
         }, {
@@ -77,7 +77,7 @@ app.post('/api/generate-soal', async (req, res) => {
             { role: 'user', content: `Buat soal ${type} dari teks berikut:\n${context}` }
         ];
         const response = await axios.post(OPENROUTER_URL, {
-            model: 'google/gemma-2-9b-it:free',
+            model: 'deepseek/deepseek-v4-flash:free',
             messages,
             temperature: 0.3
         }, {
@@ -186,7 +186,7 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
         ];
 
         const response = await axios.post(OPENROUTER_URL, {
-            model: 'google/gemma-2-9b-it:free',
+            model: 'deepseek/deepseek-v4-flash:free',
             messages,
             temperature: 0.7
         }, {
@@ -211,4 +211,4 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`El Cienco server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`El Cienco server running on port ${PORT} (DeepSeek V4 Flash)`));
