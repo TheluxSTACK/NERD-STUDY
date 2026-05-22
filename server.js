@@ -6,16 +6,16 @@ const axios = require('axios');
 
 const app = express();
 
-// ===== CORS LONGAR - IZINKAN SEMUA ORIGIN =====
+// CORS - izinkan semua origin
 app.use(cors());
 
 app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// DeepSeek API
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-dac1c9c997f1467a9da28465a66ab2ae';
-const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
+// OpenRouter API (gratis)
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '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';
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Root route
 app.get('/', (req, res) => {
@@ -42,12 +42,16 @@ app.post('/api/generate-flashcard', async (req, res) => {
             { role: 'system', content: 'Kamu adalah asisten belajar. Buat flashcard dalam format: Pertanyaan: ... Jawaban: ... (pisahkan dengan baris baru).' },
             { role: 'user', content: `Buat flashcard dari teks berikut:\n${context}` }
         ];
-        const response = await axios.post(DEEPSEEK_URL, {
-            model: 'deepseek-chat',
+        const response = await axios.post(OPENROUTER_URL, {
+            model: 'google/gemma-2-9b-it:free',  // Model gratis
             messages,
             temperature: 0.3
         }, {
-            headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` }
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'https://nerd-study-ai.netlify.app',
+                'X-Title': 'Nerd Study'
+            }
         });
         res.json({ flashcard: response.data.choices[0].message.content });
     } catch (err) {
@@ -64,12 +68,16 @@ app.post('/api/generate-soal', async (req, res) => {
             { role: 'system', content: `Kamu adalah asisten belajar. Buat soal ${type === 'pg' ? 'pilihan ganda' : 'esai'} dari teks yang diberikan. Sertakan jawaban.` },
             { role: 'user', content: `Buat soal ${type} dari teks berikut:\n${context}` }
         ];
-        const response = await axios.post(DEEPSEEK_URL, {
-            model: 'deepseek-chat',
+        const response = await axios.post(OPENROUTER_URL, {
+            model: 'google/gemma-2-9b-it:free',
             messages,
             temperature: 0.3
         }, {
-            headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` }
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'https://nerd-study-ai.netlify.app',
+                'X-Title': 'Nerd Study'
+            }
         });
         res.json({ soal: response.data.choices[0].message.content });
     } catch (err) {
@@ -82,11 +90,6 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
         
-        // Cek API Key
-        console.log('🔑 DEEPSEEK_API_KEY:', DEEPSEEK_API_KEY ? '✅ Ada' : '❌ Tidak ada');
-        console.log('📨 Message:', message);
-        console.log('📜 History length:', history?.length || 0);
-
         // System prompt untuk El Cienco
         const systemPrompt = `[ EPSTEIN-FILE ]
    > 2 APRIL <
@@ -174,16 +177,18 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
             { role: 'user', content: message }
         ];
 
-        console.log('📤 Mengirim request ke DeepSeek...');
-        const response = await axios.post(DEEPSEEK_URL, {
-            model: 'deepseek-chat',
+        const response = await axios.post(OPENROUTER_URL, {
+            model: 'google/gemma-2-9b-it:free',
             messages,
             temperature: 0.7
         }, {
-            headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` }
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'https://nerd-study-ai.netlify.app',
+                'X-Title': 'Nerd Study'
+            }
         });
 
-        console.log('✅ DeepSeek response status:', response.status);
         let reply = response.data.choices[0].message.content;
         
         if (!history || history.length === 0) {
@@ -192,16 +197,10 @@ Adaptasi terhadap gaya bicara el manco sepenuhnya dan berfikir layak nya manusia
 
         res.json({ reply });
     } catch (err) {
-        console.error('❌ Chat error:', err.message);
-        if (err.response) {
-            console.error('DeepSeek API response:', err.response.status, err.response.data);
-        }
-        res.status(500).json({ 
-            reply: `❌ Terjadi kesalahan pada sistem El Cienco: ${err.message || 'Silakan cek log Railway'}` 
-        });
+        console.error('Chat error:', err.message);
+        res.status(500).json({ reply: 'Terjadi kesalahan pada sistem El Cienco. Silakan coba lagi.' });
     }
 });
 
-// ===== SET PORT (Railway akan memberikan port secara otomatis) =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`El Cienco server running on port ${PORT}`));
