@@ -6,8 +6,16 @@ const axios = require('axios');
 
 const app = express();
 
-// CORS - izinkan semua origin
-app.use(cors());
+// ===== CORS MANUAL (PASTI BERHASIL) =====
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://nerd-study-ai.netlify.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 app.use(express.json());
 
@@ -43,7 +51,7 @@ app.post('/api/generate-flashcard', async (req, res) => {
             { role: 'user', content: `Buat flashcard dari teks berikut:\n${context}` }
         ];
         const response = await axios.post(OPENROUTER_URL, {
-            model: 'google/gemma-2-9b-it:free',  // Model gratis
+            model: 'google/gemma-2-9b-it:free',
             messages,
             temperature: 0.3
         }, {
